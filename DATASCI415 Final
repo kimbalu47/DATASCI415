@@ -523,7 +523,7 @@
         "\n",
         "nvidia = nvidia.replace([np.inf, -np.inf], np.nan).dropna()\n",
         "\n",
-        "# adding google search trend to the nvidia dataset\n",
+        "# adding 'google search trend' to the nvidia dataset\n",
         "\n",
         "search = pd.read_csv('search.csv', skiprows = 2)\n",
         "search['Week'] = pd.to_datetime(search['Week'])\n",
@@ -548,6 +548,7 @@
         "nvidia_new.columns = [col.split('_')[0] for col in nvidia_new.columns]\n",
         "nvidia_new.index = pd.to_datetime(nvidia.index)\n",
         "\n",
+        "# universal variables to use later\n",
         "\n",
         "close_prices = nvidia_new['Close']\n",
         "training_size = int(len(close_prices) * 0.8)\n",
@@ -575,7 +576,11 @@
     {
       "cell_type": "code",
       "source": [
+        "# SMA model (Baseline)\n",
+        "\n",
         "nvidia_new['SMA'] = nvidia_new['Close'].rolling(window = 5).mean()\n",
+        "\n",
+        "# plot a graph for SMA against actual closing prices\n",
         "\n",
         "plt.plot(nvidia_new.index, nvidia_new['Close'], label = 'Actual')\n",
         "plt.plot(nvidia_new.index, nvidia_new['SMA'], label = 'Forecast', color = 'red')\n",
@@ -619,6 +624,8 @@
     {
       "cell_type": "code",
       "source": [
+        "# cross validation for SMA\n",
+        "\n",
         "sma_mse, sma_mae = [], []\n",
         "\n",
         "for i, j in TimeSeriesSplit(n_splits = 10).split(nvidia_new):\n",
@@ -686,11 +693,15 @@
         }
       ],
       "source": [
+        "# ARIMA(1) model (only historical data)\n",
+        "\n",
         "train, test = close_prices[:training_size], close_prices[training_size:]\n",
         "train_arima, test_arima = small_var.iloc[:training_size], small_var.iloc[training_size:]\n",
         "\n",
         "model_arima = (ARIMA(train, order=(5, 1, 0), exog = train_arima)).fit()\n",
         "forecast = model_arima.forecast(steps = len(test), exog = test_arima)\n",
+        "\n",
+        "# plot a graph for ARIMA(1) against actual closing prices\n",
         "\n",
         "plt.plot(train, label = 'Training Data')\n",
         "plt.plot(test.index, test, label = 'Actual', color = 'blue')\n",
@@ -732,6 +743,8 @@
         }
       ],
       "source": [
+        "# cross validation for ARIMA(1)\n",
+        "\n",
         "arima_mae, arima_mse = [], []\n",
         "\n",
         "for i, j in TimeSeriesSplit(n_splits = 10).split(close_prices):\n",
@@ -781,11 +794,15 @@
         }
       ],
       "source": [
+        "# ARIMA(2) model (historical and market sentiment data)\n",
+        "\n",
         "train, test = close_prices[:training_size], close_prices[training_size:]\n",
         "train_arimahm, test_arimahm = big_var.iloc[:training_size], big_var.iloc[training_size:]\n",
         "\n",
         "model_arimahm = (ARIMA(train, order=(5, 1, 0), exog = train_arimahm)).fit()\n",
         "forecast = model_arimahm.forecast(steps=len(test), exog = test_arimahm)\n",
+        "\n",
+        "# plot a graph for ARIMA(2) against actual closing prices\n",
         "\n",
         "plt.plot(train, label = 'Training Data')\n",
         "plt.plot(test.index, test, label = 'Actual', color = 'blue')\n",
@@ -827,6 +844,8 @@
         }
       ],
       "source": [
+        "# cross validation for ARIMA(2)\n",
+        "\n",
         "arimahm_mae, arimahm_mse = [], []\n",
         "\n",
         "for i, j in TimeSeriesSplit(n_splits = 10).split(close_prices):\n",
@@ -877,11 +896,15 @@
         }
       ],
       "source": [
+        "# SVM(1) model (only historical data)\n",
+        "\n",
         "train, test = close_prices[:training_size], close_prices[training_size:]\n",
         "train_svm, test_svm = small_var.iloc[:training_size], small_var.iloc[training_size:]\n",
         "\n",
         "model_svm = SVR(kernel='rbf').fit(train_svm, train)\n",
         "forecast = model_svm.predict(test_svm)\n",
+        "\n",
+        "# plot a graph for SVM(1) against actual closing prices\n",
         "\n",
         "plt.plot(train.index, train, label = 'Training Data')\n",
         "plt.plot(test.index, test, label = 'Actual', color = 'blue')\n",
@@ -905,6 +928,8 @@
     {
       "cell_type": "code",
       "source": [
+        "# cross validation for SVM(1)\n",
+        "\n",
         "svm_mae, svm_mse = [], []\n",
         "\n",
         "for i, j in TimeSeriesSplit(n_splits = 10).split(close_prices):\n",
@@ -951,11 +976,15 @@
     {
       "cell_type": "code",
       "source": [
+        "# SVM(2) model (only historical data)\n",
+        "\n",
         "train, test = close_prices[:training_size], close_prices[training_size:]\n",
         "train_svmhm, test_svmhm = big_var.iloc[:training_size], big_var.iloc[training_size:]\n",
         "\n",
         "model_svm = SVR(kernel='rbf').fit(train_svmhm, train)\n",
         "forecast = model_svm.predict(test_svmhm)\n",
+        "\n",
+        "# plot a graph for SVM(2) against actual closing prices\n",
         "\n",
         "plt.plot(train.index, train, label = 'Training Data')\n",
         "plt.plot(test.index, test, label = 'Actual', color = 'blue')\n",
@@ -1000,6 +1029,8 @@
     {
       "cell_type": "code",
       "source": [
+        "# cross validation for SVM(2)\n",
+        "\n",
         "svmhm_mae, svmhm_mse = [], []\n",
         "\n",
         "for i, j in TimeSeriesSplit(n_splits = 10).split(close_prices):\n",
@@ -1046,6 +1077,8 @@
     {
       "cell_type": "code",
       "source": [
+        "# re-download nvidia for fresh dataset\n",
+        "\n",
         "nvidia = yf.download('NVDA', start = '2023-01-01', end = '2024-11-30',\n",
         "                     interval = \"1d\").dropna()\n",
         "nvidia.index = pd.to_datetime(nvidia.index).strftime('%Y-%m-%d')\n",
@@ -1057,7 +1090,11 @@
         "train = nvidia['Close']\n",
         "var = nvidia[['Open', 'High', 'Low', 'Volume']]\n",
         "\n",
+        "# using ARIMA(1) model - which came out to be the best model with lowest MAE, MSE\n",
+        "\n",
         "model = ARIMA(train, order = (5, 1, 0), exog = var).fit()\n",
+        "\n",
+        "# predicting 20 days\n",
         "\n",
         "predicting_dates = 20\n",
         "last_values = var.iloc[-1].values\n",
@@ -1067,6 +1104,9 @@
         "prediction = pd.date_range(start = pd.to_datetime(train.index[-1]),\n",
         "                               periods = predicting_dates + 1, freq = 'B')[1:]\n",
         "\n",
+        "\n",
+        "# plot a graph for Dec 2024 (prediction)\n",
+        "\n",
         "plt.plot(pd.to_datetime(train.index), train, label = 'Training Data')\n",
         "plt.plot(prediction, forecast, label = 'Forecasted Prices', color = 'blue')\n",
         "plt.xlabel('Date')\n",
@@ -1074,6 +1114,8 @@
         "plt.title('ARIMA Model with Historical Variables Forecasting')\n",
         "plt.legend()\n",
         "plt.show()\n",
+        "\n",
+        "# make a table of prediction\n",
         "\n",
         "print(pd.DataFrame({'Date': prediction, 'Forecasting': forecast}))"
       ],
